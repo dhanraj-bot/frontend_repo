@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -14,8 +15,21 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SignOutDialog } from '@/components/sign-out-dialog'
 
+function getInitials(name?: string, email?: string): string {
+  const base = (name || email || '').trim()
+  if (!base) return 'U'
+  const parts = base.split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return base.slice(0, 2).toUpperCase()
+}
+
 export function ProfileDropdown() {
   const [open, setOpen] = useDialogState()
+  const { auth } = useAuthStore()
+
+  const displayName = auth.user?.name ?? auth.user?.email ?? 'satnaing'
+  const displayEmail = auth.user?.email ?? 'satnaingdev@gmail.com'
+  const fallback = auth.user ? getInitials(auth.user.name, auth.user.email) : 'SN'
 
   return (
     <>
@@ -23,17 +37,17 @@ export function ProfileDropdown() {
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
             <Avatar className='h-8 w-8'>
-              <AvatarImage src='/avatars/01.png' alt='@shadcn' />
-              <AvatarFallback>SN</AvatarFallback>
+              <AvatarImage src='/avatars/01.png' alt={displayName} />
+              <AvatarFallback>{fallback}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className='w-56' align='end' forceMount>
           <DropdownMenuLabel className='font-normal'>
             <div className='flex flex-col gap-1.5'>
-              <p className='text-sm leading-none font-medium'>satnaing</p>
+              <p className='text-sm leading-none font-medium'>{displayName}</p>
               <p className='text-xs leading-none text-muted-foreground'>
-                satnaingdev@gmail.com
+                {displayEmail}
               </p>
             </div>
           </DropdownMenuLabel>

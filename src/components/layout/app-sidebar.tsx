@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores/auth-store'
 import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
@@ -14,6 +15,13 @@ import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
+  const { auth } = useAuthStore()
+  // Show the signed-in Shopify staff member, falling back to demo data.
+  const navUser = {
+    name: auth.user?.name ?? auth.user?.email ?? sidebarData.user.name,
+    email: auth.user?.email ?? sidebarData.user.email,
+    avatar: sidebarData.user.avatar,
+  }
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
@@ -29,7 +37,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser user={navUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

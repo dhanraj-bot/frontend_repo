@@ -1,13 +1,13 @@
 import { ContentSection } from '../components/content-section'
-import { ProfileForm } from './profile-form'
+import { ShopifyAccount } from './shopify-account'
 
 export function SettingsProfile() {
   return (
     <ContentSection
       title='Profile'
-      desc='This is how others will see you on the site.'
+      desc='Your Shopify staff account used to access this admin.'
     >
-      <ProfileForm />
+      <ShopifyAccount />
     </ContentSection>
   )
 }
