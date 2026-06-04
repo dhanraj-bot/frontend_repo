@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { getCookie, setCookie, removeCookie } from '@/lib/cookies'
 
-const ACCESS_TOKEN = 'thisisjustarandomstring'
+const ACCESS_TOKEN = 'Jwt_Token_cookie'
 const AUTH_USER = 'auth_user'
 
 interface AuthUser {
@@ -26,6 +26,33 @@ interface AuthState {
     resetAccessToken: () => void
     reset: () => void
   }
+}
+
+/**
+ * Decode a JWT's `exp` (seconds since epoch) without verifying the signature.
+ * Returns null if the token is malformed or has no exp claim.
+ */
+function jwtExpSeconds(token: string): number | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    const exp = (JSON.parse(json) as { exp?: number }).exp
+    return typeof exp === 'number' ? exp : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Seconds until the JWT expires, so the cookie dies with the token instead of
+ * outliving it. Falls back to the cookie default when exp is missing/expired.
+ */
+function cookieMaxAgeForToken(token: string): number | undefined {
+  const exp = jwtExpSeconds(token)
+  if (exp === null) return undefined
+  const remaining = exp - Math.floor(Date.now() / 1000)
+  return remaining > 0 ? remaining : 0
 }
 
 function readUserCookie(): AuthUser | null {
@@ -57,7 +84,11 @@ export const useAuthStore = create<AuthState>()((set) => {
       accessToken: initToken,
       setAccessToken: (accessToken) =>
         set((state) => {
-          setCookie(ACCESS_TOKEN, JSON.stringify(accessToken))
+          setCookie(
+            ACCESS_TOKEN,
+            JSON.stringify(accessToken),
+            cookieMaxAgeForToken(accessToken)
+          )
           return { ...state, auth: { ...state.auth, accessToken } }
         }),
       resetAccessToken: () =>
